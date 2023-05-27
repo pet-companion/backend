@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { config } from 'dotenv';
 import { Dialect } from 'sequelize';
+import { UserModule } from './modules/user/user.module';
 
 config();
 
@@ -28,6 +29,7 @@ const sequelizeConfig = {
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     SequelizeModule.forRoot(sequelizeConfig),
+    UserModule,
   ],
 })
 export class AppModule {}
