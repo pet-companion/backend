@@ -4,6 +4,9 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { config } from 'dotenv';
 import { Dialect } from 'sequelize';
 import { UserModule } from './modules/user/user.module';
+import { AuthService } from './modules/auth/auth.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { User } from './models';
 
 config();
 
@@ -14,7 +17,7 @@ const sequelizeConfig = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME_DEVELOPMENT,
-  models: [],
+  models: [User],
   synchronize: true,
   define: {
     defaultScope: {
@@ -30,6 +33,7 @@ const sequelizeConfig = {
     ConfigModule.forRoot({ isGlobal: true }),
     SequelizeModule.forRoot(sequelizeConfig),
     UserModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
