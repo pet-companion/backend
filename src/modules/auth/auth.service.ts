@@ -1,11 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/models';
-import { LoginDto, RegisterDto } from './auth.dto';
-import { InjectModel } from '@nestjs/sequelize';
 import { UniqueConstraintError } from 'sequelize';
+import { InjectModel } from '@nestjs/sequelize';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
+import { User } from 'src/models';
+
+import { LoginDto, RegisterDto } from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +33,11 @@ export class AuthService {
     if (!isPasswordMatches)
       throw new ForbiddenException('Credentials incorrect.');
 
-    return this.signToken(user.id, user.email, user.name);
+    const tokens = await this.signTokens(user.id, user.name);
+
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+
+    return tokens;
   }
 
   /**
@@ -48,13 +54,18 @@ export class AuthService {
   async register({ email, password, name, phoneNumber }: RegisterDto) {
     try {
       const hashedPassword = await hash(password, 12);
-      const user = await this.userService.create({
+      const newUser = await this.userService.create({
         email,
         password: hashedPassword,
         name,
         phoneNumber,
       });
-      return this.signToken(user.id, user.email, user.name);
+
+      const tokens = await this.signTokens(newUser.id, newUser.name);
+
+      await this.updateRefreshToken(newUser.id, tokens.refresh_token);
+
+      return tokens;
     } catch (error) {
       if (error instanceof UniqueConstraintError) {
         if (error.errors[0].path === 'email') {
@@ -66,17 +77,78 @@ export class AuthService {
   }
 
   /**
+   * @param id  User's id
+   * @returns   Message
+   * @description Logout user
+   */
+  async logout(id: number) {
+    this.userService.update({ refreshToken: null }, { where: { id } });
+    return { message: 'Logout successfully.' };
+  }
+
+  /**
+   * @param id            User's id
+   * @param refreshToken  User's refresh token
+   * @returns             tokens and token type
+   * @throws              ForbiddenException
+   * @description         Refresh access token and return new tokens and token type
+   *                      if credentials are correct otherwise throw ForbiddenException
+   */
+  async refresh(id: number, refreshToken: string) {
+    const user = await this.userService.findOne({ where: { id } });
+    if (!user) throw new ForbiddenException('Credentials incorrect.');
+
+    const isRefreshTokenMatches = await compare(
+      refreshToken,
+      user.refreshToken,
+    );
+    if (!isRefreshTokenMatches)
+      throw new ForbiddenException('Credentials incorrect.');
+
+    const tokens = await this.signTokens(user.id, user.name);
+
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+
+    return tokens;
+  }
+
+  /**
+   * @param id            User's id
+   * @param refreshToken  User's refresh token
+   * @description         Update user's refresh token
+   */
+  async updateRefreshToken(id: number, refreshToken: string) {
+    const hashedRefreshToken = await hash(refreshToken, 12);
+    await this.userService.update(
+      { refreshToken: hashedRefreshToken },
+      { where: { id } },
+    );
+  }
+
+  /**
    * @param id      User's id
    * @param email   User's email
    * @param name    User's name
    * @returns       Access token and token type
    * @description   Sign token with user's id, email and name
    */
-  private async signToken(id: number, email: string, name: string) {
-    const payload = { id, email, name };
-    console.log(this.configService.get('ACCESS_TOKEN_TYPE'));
+  private async signTokens(id: number, name: string) {
+    const payload = { id, name };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwt.signAsync(payload, {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: this.configService.get('ACCESS_TOKEN_EXPIRATION'),
+      }),
+      this.jwt.signAsync(payload, {
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRATION'),
+      }),
+    ]);
+
     return {
-      access_token: this.jwt.sign(payload),
+      access_token: accessToken,
+      refresh_token: refreshToken,
       type: this.configService.get('ACCESS_TOKEN_TYPE'),
     };
   }
