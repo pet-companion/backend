@@ -33,11 +33,25 @@ export class AuthService {
     if (!isPasswordMatches)
       throw new ForbiddenException('Credentials incorrect.');
 
-    const tokens = await this.signTokens(user.id, user.name);
+    const tokens = await this.signTokens({
+      id: user.id,
+      name: user.name,
+      isVerified: user.isVerified,
+    });
 
     await this.updateRefreshToken(user.id, tokens.refresh_token);
 
-    return tokens;
+    return {
+      tokens,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        isVerified: user.isVerified,
+        isDeleted: user.isDeleted,
+      },
+    };
   }
 
   /**
@@ -61,8 +75,11 @@ export class AuthService {
         phoneNumber,
       });
 
-      const tokens = await this.signTokens(newUser.id, newUser.name);
-
+      const tokens = await this.signTokens({
+        id: newUser.id,
+        name: newUser.name,
+        isVerified: newUser.isVerified,
+      });
       await this.updateRefreshToken(newUser.id, tokens.refresh_token);
 
       return tokens;
@@ -77,12 +94,13 @@ export class AuthService {
   }
 
   /**
-   * @param id  User's id
-   * @returns   Message
+   * @param id    User's id
+   * @returns     Message
    * @description Logout user
    */
   async logout(id: number) {
     this.userService.update({ refreshToken: null }, { where: { id } });
+
     return { message: 'Logout successfully.' };
   }
 
@@ -105,7 +123,11 @@ export class AuthService {
     if (!isRefreshTokenMatches)
       throw new ForbiddenException('Credentials incorrect.');
 
-    const tokens = await this.signTokens(user.id, user.name);
+    const tokens = await this.signTokens({
+      id: user.id,
+      name: user.name,
+      isVerified: user.isVerified,
+    });
 
     await this.updateRefreshToken(user.id, tokens.refresh_token);
 
@@ -132,8 +154,8 @@ export class AuthService {
    * @returns       Access token and token type
    * @description   Sign token with user's id, email and name
    */
-  private async signTokens(id: number, name: string) {
-    const payload = { id, name };
+  private async signTokens({ id, name, isVerified = false }) {
+    const payload = { id, name, isVerified };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {
