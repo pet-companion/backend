@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 
 import { UserInformation } from 'src/decorators';
 import { AccessTokenGuard, RefreshTokenGuard } from './guards';
 
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './auth.dto';
-import { Request } from 'express';
+import { EmailVerificationGuard } from './guards/email-verification.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,19 +21,19 @@ export class AuthController {
     return this.authService.register(body);
   }
 
-  @UseGuards(new AccessTokenGuard())
+  @UseGuards(new AccessTokenGuard(), new EmailVerificationGuard())
   @Get('logout')
   logout(@UserInformation() user: any) {
     return this.authService.logout(user.id);
   }
 
-  @UseGuards(new AccessTokenGuard())
+  @UseGuards(new AccessTokenGuard(), new EmailVerificationGuard())
   @Get('me')
   me(@UserInformation() user: any) {
     return user;
   }
 
-  @UseGuards(new RefreshTokenGuard())
+  @UseGuards(new RefreshTokenGuard(), new EmailVerificationGuard())
   @Get('refresh')
   refresh(@UserInformation() user: any) {
     return this.authService.refresh(user.id, user.refreshToken);

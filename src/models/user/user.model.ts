@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, HasOne } from 'sequelize-typescript';
+import { Otp } from './otp.model';
 
 @Table
 export class User extends Model<User> {
@@ -22,4 +23,7 @@ export class User extends Model<User> {
 
   @Column({ type: DataType.STRING, allowNull: true })
   refreshToken: string;
+
+  @HasOne(() => Otp)
+  otp: Otp;
 }
