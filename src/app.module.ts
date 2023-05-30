@@ -14,15 +14,29 @@ import { EmailModule } from './modules/email/email.module';
 
 config();
 
+const databaseUrlConfig = () => {
+  let config = {};
+
+  if (process.env.NODE_ENV === 'production') {
+    config = { uri: process.env.DATABASE_URL };
+  } else if (process.env.NODE_ENV === 'development') {
+    config = {
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME_DEVELOPMENT,
+    };
+  }
+
+  return config;
+};
+
 const sequelizeConfig = {
   dialect: process.env.DB_DIALECT as Dialect,
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME_DEVELOPMENT,
   models: [User, Otp],
   synchronize: true,
+  ...databaseUrlConfig(),
   define: {
     defaultScope: {
       attributes: {
@@ -35,7 +49,7 @@ const sequelizeConfig = {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    SequelizeModule.forRoot(sequelizeConfig),
+    SequelizeModule.forRoot({ ...sequelizeConfig }),
     MailerModule.forRoot({
       transport: {
         host: process.env.MAILER_HOST,
