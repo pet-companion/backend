@@ -28,8 +28,6 @@ const sequelizeConfig = {
   },
 };
 
-console.log(sequelizeConfig);
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
