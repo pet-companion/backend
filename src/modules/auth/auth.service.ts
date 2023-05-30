@@ -118,10 +118,6 @@ export class AuthService {
   }
 
   async verifyEmail(otp: string, user: any) {
-    if (user.isVerified) {
-      throw new BadRequestException('User is already verified.');
-    }
-
     await this.otpService.verifyOtp({ otp }, user.id);
 
     const updatedUser = await this.userService.updateEmailVerificationStatus(

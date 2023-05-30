@@ -6,6 +6,7 @@ import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
 import { SendOtpDto, VerifyOtpDto } from './otp.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class OtpService {
@@ -13,6 +14,7 @@ export class OtpService {
     private emailService: EmailService,
     @InjectModel(Otp) private otpModel: typeof Otp,
     private configService: ConfigService,
+    private userService: UserService,
   ) {}
 
   async sendOtp(
@@ -51,6 +53,12 @@ export class OtpService {
   }
 
   async verifyOtp({ otp }: VerifyOtpDto, userId: number) {
+    const user = await this.userService.findUserById(userId);
+
+    if (user.isVerified) {
+      throw new BadRequestException('User already verified.');
+    }
+
     const otpData = await this.otpModel.findOne({
       where: { userId },
     });
