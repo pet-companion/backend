@@ -64,8 +64,6 @@ export class UserService {
   }
 
   async updateEmailVerificationStatus(userId: number, isVerified: boolean) {
-    if (isVerified) throw new ConflictException('User is already verified.');
-
     const updatedUser = await this.updateUser(userId, { isVerified });
 
     return updatedUser;

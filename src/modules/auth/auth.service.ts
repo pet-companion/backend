@@ -121,11 +121,12 @@ export class AuthService {
     if (user.isVerified) {
       throw new BadRequestException('User is already verified.');
     }
-    const isMatch = await this.otpService.verifyOtp({ otp }, user.id);
+
+    await this.otpService.verifyOtp({ otp }, user.id);
 
     const updatedUser = await this.userService.updateEmailVerificationStatus(
       user.id,
-      isMatch,
+      true,
     );
 
     return {
