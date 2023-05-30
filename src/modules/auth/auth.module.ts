@@ -3,23 +3,31 @@ import { JwtModule } from '@nestjs/jwt';
 import { config } from 'dotenv';
 import { SequelizeModule } from '@nestjs/sequelize';
 
-import { User } from 'src/models';
+import { Otp, User } from 'src/models';
 import { AccessTokenStrategy, RefreshTokenStrategy } from './strategies';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
+import { OtpService } from '../otp/otp.service';
+import { EmailService } from '../email/email.service';
 
 config();
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]), JwtModule.register({})],
+  imports: [
+    SequelizeModule.forFeature([User]),
+    SequelizeModule.forFeature([Otp]),
+    JwtModule.register({}),
+  ],
   controllers: [AuthController],
   providers: [
     AuthService,
     AccessTokenStrategy,
     RefreshTokenStrategy,
     UserService,
+    OtpService,
+    EmailService,
   ],
 })
 export class AuthModule {}

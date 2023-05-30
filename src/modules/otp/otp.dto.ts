@@ -8,6 +8,18 @@ export class VerifyOtpDto {
   otp: string;
 }
 
+export class VerifyEmailOtpDto extends VerifyOtpDto {}
+
+export class PasswordResetOtpDto {
+  @IsNotEmpty()
+  @IsString()
+  otp: string;
+
+  @IsNotEmpty()
+  @IsString()
+  newPassword: string;
+}
+
 export class SendOtpDto {
   @IsNotEmpty()
   @IsString()
