@@ -10,7 +10,7 @@ export class UserService {
   async findUserById(userId: number) {
     return await this.userModel.findOne({
       where: { id: userId },
-      attributes: { exclude: ['password', 'refreshToken'] },
+      attributes: { exclude: ['password'] },
       raw: true,
     });
   }

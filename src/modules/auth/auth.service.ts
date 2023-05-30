@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { UniqueConstraintError } from 'sequelize';
@@ -186,6 +187,8 @@ export class AuthService {
   async refresh(userId: number, refreshToken: string) {
     const user = await this.userService.findUserById(userId);
     if (!user) throw new ForbiddenException('Credentials incorrect.');
+    console.log(user);
+    console.log(refreshToken, user.refreshToken);
 
     const isRefreshTokenMatches = await compare(
       refreshToken,
