@@ -6,6 +6,7 @@ import { AccessTokenGuard, RefreshTokenGuard } from './guards';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './auth.dto';
 import { EmailVerificationGuard } from './guards/email-verification.guard';
+import { VerifyOtpDto } from '../otp/otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +20,21 @@ export class AuthController {
   @Post('register')
   register(@Body() body: RegisterDto) {
     return this.authService.register(body);
+  }
+
+  @UseGuards(new AccessTokenGuard())
+  @Get('send-verification-code')
+  async sendVerifyEmailOtp(@UserInformation() user: any) {
+    return this.authService.sendVerifyEmailOtp(user);
+  }
+
+  @UseGuards(new AccessTokenGuard())
+  @Post('verify-email')
+  async verifyEmail(
+    @Body() { otp }: VerifyOtpDto,
+    @UserInformation() user: any,
+  ) {
+    return this.authService.verifyEmail(otp, user);
   }
 
   @UseGuards(new AccessTokenGuard(), new EmailVerificationGuard())
