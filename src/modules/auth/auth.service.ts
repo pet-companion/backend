@@ -5,11 +5,8 @@ import {
 } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { UniqueConstraintError } from 'sequelize';
-import { InjectModel } from '@nestjs/sequelize';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-
-import { User } from 'src/models';
 
 import { LoginDto, RegisterDto } from './auth.dto';
 import { OtpService } from '../otp/otp.service';
@@ -18,7 +15,6 @@ import { UserService } from '../user/user.service';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User) private userModel: typeof User,
     private jwt: JwtService,
     private configService: ConfigService,
     private otpService: OtpService,
@@ -34,7 +30,7 @@ export class AuthService {
    *                 type if credentials are correct otherwise throw ForbiddenException
    */
   async login({ email, password }: LoginDto) {
-    const user = await this.userModel.findOne({ where: { email: email } });
+    const user = await this.userService.findUserByEmail(email);
     if (!user) throw new ForbiddenException('Credentials incorrect.');
 
     const isPasswordMatches = await compare(password, user.password);
@@ -42,7 +38,7 @@ export class AuthService {
       throw new ForbiddenException('Credentials incorrect.');
 
     const tokens = await this.signTokens({
-      id: user.id,
+      userId: user.id,
       name: user.name,
       isVerified: user.isVerified,
     });
@@ -75,22 +71,31 @@ export class AuthService {
    */
   async register({ email, password, name, phoneNumber }: RegisterDto) {
     try {
-      const hashedPassword = await hash(password, 12);
-      const newUser = await this.userModel.create({
+      const newUser = await this.userService.createUser(
         email,
-        password: hashedPassword,
+        password,
         name,
         phoneNumber,
-      });
+      );
 
       const tokens = await this.signTokens({
-        id: newUser.id,
+        userId: newUser.id,
         name: newUser.name,
         isVerified: newUser.isVerified,
       });
       await this.updateRefreshToken(newUser.id, tokens.refresh_token);
 
-      return tokens;
+      return {
+        tokens,
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+          isVerified: newUser.isVerified,
+          isDeleted: newUser.isDeleted,
+        },
+      };
     } catch (error) {
       if (error instanceof UniqueConstraintError) {
         if (error.errors[0].path === 'email') {
@@ -106,8 +111,8 @@ export class AuthService {
    * @returns     Message
    * @description Logout user
    */
-  async logout(id: number) {
-    this.userModel.update({ refreshToken: null }, { where: { id } });
+  async logout(userId: number) {
+    this.userService.updateUserRefreshToken(userId, null);
 
     return { message: 'Logout successfully.' };
   }
@@ -140,6 +145,36 @@ export class AuthService {
         duration: 2,
       },
       user.id,
+      'Verification code sent successfully, please check your email.',
+    );
+  }
+
+  async resetPassword({ otp, newPassword }: any, user: any) {
+    await this.otpService.verifyOtp({ otp }, user.id);
+
+    const updatedUser = await this.userService.updatePassword(
+      user.id,
+      newPassword,
+    );
+
+    return {
+      message: 'Password reset successfully.',
+      user: updatedUser,
+    };
+  }
+
+  async sendPasswordResetOtp(user: any) {
+    const userEmail = (await this.userService.findUserById(user.id)).email;
+
+    return await this.otpService.sendOtp(
+      {
+        email: userEmail,
+        message: 'Your password reset code is',
+        subject: 'Reset your password',
+        duration: 2,
+      },
+      user.id,
+      'Password reset code sent successfully, please check your email.',
     );
   }
 
@@ -151,8 +186,8 @@ export class AuthService {
    * @description         Refresh access token and return new tokens and token type
    *                      if credentials are correct otherwise throw ForbiddenException
    */
-  async refresh(id: number, refreshToken: string) {
-    const user = await this.userModel.findOne({ where: { id } });
+  async refresh(userId: number, refreshToken: string) {
+    const user = await this.userService.findUserById(userId);
     if (!user) throw new ForbiddenException('Credentials incorrect.');
 
     const isRefreshTokenMatches = await compare(
@@ -163,7 +198,7 @@ export class AuthService {
       throw new ForbiddenException('Credentials incorrect.');
 
     const tokens = await this.signTokens({
-      id: user.id,
+      userId: user.id,
       name: user.name,
       isVerified: user.isVerified,
     });
@@ -178,12 +213,9 @@ export class AuthService {
    * @param refreshToken  User's refresh token
    * @description         Update user's refresh token
    */
-  async updateRefreshToken(id: number, refreshToken: string) {
+  async updateRefreshToken(userId: number, refreshToken: string) {
     const hashedRefreshToken = await hash(refreshToken, 12);
-    await this.userModel.update(
-      { refreshToken: hashedRefreshToken },
-      { where: { id } },
-    );
+    await this.userService.updateUserRefreshToken(userId, hashedRefreshToken);
   }
 
   /**
@@ -193,8 +225,8 @@ export class AuthService {
    * @returns       Access token and token type
    * @description   Sign token with user's id, email and name
    */
-  private async signTokens({ id, name, isVerified = false }) {
-    const payload = { id, name, isVerified };
+  private async signTokens({ userId, name, isVerified = false }) {
+    const payload = { id: userId, name, isVerified };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {

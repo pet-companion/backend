@@ -18,6 +18,7 @@ export class OtpService {
   async sendOtp(
     { email, subject, message, duration }: SendOtpDto,
     userId: number,
+    returnMessage: string,
   ) {
     await this.deleteOtp(userId);
 
@@ -45,7 +46,7 @@ export class OtpService {
     });
 
     return {
-      message: 'Verification code sent successfully, please check your email.',
+      message: returnMessage,
     };
   }
 
@@ -55,7 +56,7 @@ export class OtpService {
     });
 
     if (!otpData) {
-      throw new BadRequestException('Request a new code to verify your email.');
+      throw new BadRequestException('OTP not found, request a new one.');
     }
 
     const { expiresAt } = otpData;
