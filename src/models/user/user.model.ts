@@ -1,5 +1,13 @@
-import { Table, Column, Model, DataType, HasOne } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  HasOne,
+  HasMany,
+} from 'sequelize-typescript';
 import { Otp } from './otp.model';
+import { Pet } from '../pet/pet.model';
 
 @Table
 export class User extends Model<User> {
@@ -26,4 +34,7 @@ export class User extends Model<User> {
 
   @HasOne(() => Otp)
   otp: Otp;
+
+  @HasMany(() => Pet)
+  pets: Pet[];
 }
