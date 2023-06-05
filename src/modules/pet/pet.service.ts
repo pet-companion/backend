@@ -14,44 +14,48 @@ export class PetService {
     const petCategory = await this.petCategoryModel.findOne({
       where: { id: createPetDto.petCategoryId },
     });
-
     if (!petCategory) throw new BadRequestException('Pet category not found');
 
     const pet = await this.petModel.create({
       ...createPetDto,
       userId,
     });
+
     return pet;
   }
 
   async findAll() {
-    return await this.petModel.findAll();
+    const pets = await this.petModel.findAll();
+
+    if (!pets.length) throw new BadRequestException('No pets found.');
+
+    return pets;
   }
 
   async findAllByUserId(userId: number) {
-    return await this.petModel.findAll({
+    const pets = await this.petModel.findAll({
       where: { userId },
     });
+
+    if (!pets.length) throw new BadRequestException('No pets found.');
+
+    return pets;
   }
 
   async findOne(petId: number) {
-    return await this.petModel.findOne({
-      where: { id: petId },
-    });
+    const pet = await this.findOnePet(petId);
+
+    return pet;
   }
 
   async findOneByUserId(petId: number, userId: number) {
-    return await this.petModel.findOne({
-      where: { id: petId, userId },
-    });
+    const pet = await this.findOnePet(petId, userId);
+
+    return pet;
   }
 
   async update(petId: number, updatePetDto: UpdatePetDto) {
-    const pet = await this.petModel.findOne({
-      where: { id: petId },
-    });
-
-    if (!pet) throw new BadRequestException('Pet not found.');
+    const pet = await this.findOnePet(petId);
 
     await pet.update(updatePetDto);
 
@@ -63,11 +67,7 @@ export class PetService {
     updatePetDto: UpdatePetDto,
     userId: number,
   ) {
-    const pet = await this.petModel.findOne({
-      where: { id: petId, userId },
-    });
-
-    if (!pet) throw new BadRequestException('Pet not found.');
+    const pet = await this.findOnePet(petId, userId);
 
     await pet.update(updatePetDto);
 
@@ -75,11 +75,7 @@ export class PetService {
   }
 
   async remove(petId: number) {
-    const pet = await this.petModel.findOne({
-      where: { id: petId },
-    });
-
-    if (!pet) throw new BadRequestException('Pet not found.');
+    const pet = await this.findOnePet(petId);
 
     await pet.destroy();
 
@@ -87,14 +83,30 @@ export class PetService {
   }
 
   async removeByUserId(petId: number, userId: number) {
+    const pet = await this.findOnePet(petId, userId);
+
+    await pet.destroy();
+
+    return pet;
+  }
+
+  private async findOnePet(petId: number, userId?: number) {
     const pet = await this.petModel.findOne({
       where: { id: petId, userId },
     });
 
     if (!pet) throw new BadRequestException('Pet not found.');
 
-    await pet.destroy();
-
     return pet;
   }
+
+  // private async findAllPets(userId?: number) {
+  //   const pets = await this.petModel.findAll({
+  //     where: { userId },
+  //   });
+
+  //   if (!pets.length) throw new BadRequestException('No pets found.');
+
+  //   return pets;
+  // }
 }

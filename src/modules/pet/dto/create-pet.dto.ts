@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
+  IsUrl,
 } from 'class-validator';
 import { GenderEnum } from 'src/enums';
 
@@ -28,6 +29,10 @@ export class CreatePetDto {
   @IsDateString()
   @IsNotEmpty()
   dateOfBirth: Date;
+
+  @IsUrl()
+  @IsNotEmpty()
+  photoUrl: string;
 
   @IsNumber()
   @IsNotEmpty()

@@ -12,8 +12,14 @@ import {
 import { PetService } from './pet.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
-import { AccessTokenGuard } from '../auth/guards';
-import { EmailVerificationGuard } from '../auth/guards/email-verification.guard';
+import {
+  AccessTokenGuard,
+  EmailVerificationGuard,
+  RolesGuard,
+} from '../auth/guards';
+
+import { Roles } from 'src/decorators/roles.decorator';
+import { RoleEnum } from 'src/enums';
 
 // TODO
 // Commented methods should be protected bt the RoleGuard // !(admin only)
@@ -24,6 +30,37 @@ import { EmailVerificationGuard } from '../auth/guards/email-verification.guard'
 export class PetController {
   constructor(private readonly petService: PetService) {}
 
+  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
+  @UseGuards(RolesGuard)
+  @Get()
+  async findAll() {
+    return await this.petService.findAll();
+  }
+
+  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
+  @UseGuards(RolesGuard)
+  @Get(':petId')
+  async findOne(@Param('petId', ParseIntPipe) petId: number) {
+    return await this.petService.findOne(petId);
+  }
+
+  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
+  @UseGuards(RolesGuard)
+  @Patch(':petId')
+  async update(
+    @Param('petId', ParseIntPipe) petId: number,
+    @Body() updatePetDto: UpdatePetDto,
+  ) {
+    return await this.petService.update(petId, updatePetDto);
+  }
+
+  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
+  @UseGuards(RolesGuard)
+  @Delete(':petId')
+  async remove(@Param('petId', ParseIntPipe) id: number) {
+    return await this.petService.remove(id);
+  }
+
   @Post('user/:userId')
   async create(
     @Body() createPetDto: CreatePetDto,
@@ -31,16 +68,6 @@ export class PetController {
   ) {
     return await this.petService.create(createPetDto, userId);
   }
-
-  // @Get()
-  // async findAll() {
-  //   return await this.petService.findAll();
-  // }
-
-  // @Get(':petId')
-  // async findOne(@Param('petId', ParseIntPipe) petId: number) {
-  //   return await this.petService.findOne(petId);
-  // }
 
   @Get('user/:userId')
   async findAllByUserId(@Param('userId', ParseIntPipe) userId: number) {
@@ -55,11 +82,6 @@ export class PetController {
     return await this.petService.findOneByUserId(petId, userId);
   }
 
-  // @Patch(':petId')
-  // async update(@Param('petId', ParseIntPipe) petId: number, @Body() updatePetDto: UpdatePetDto) {
-  //   return await this.petService.update(petId, updatePetDto);
-  // }
-
   @Patch(':petId/user/:userId')
   async updateByUserId(
     @Param('petId', ParseIntPipe) petId: number,
@@ -68,11 +90,6 @@ export class PetController {
   ) {
     return await this.petService.updateByUserId(petId, updatePetDto, userId);
   }
-
-  // @Delete(':petId')
-  // async remove(@Param('petId', ParseIntPipe) id: number) {
-  //   return await this.petService.remove(id);
-  // }
 
   @Delete(':petId/user/:userId')
   async removeByUserId(
