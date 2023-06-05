@@ -1,9 +1,12 @@
 import {
+  IsArray,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsString,
   IsStrongPassword,
 } from 'class-validator';
+import { RoleEnum } from 'src/enums';
 
 export class LoginDto {
   @IsString()
@@ -28,4 +31,7 @@ export class RegisterDto extends LoginDto {
   @IsStrongPassword()
   @IsNotEmpty()
   password: string;
+
+  @IsEnum(RoleEnum, { each: true })
+  roles: RoleEnum[] = [RoleEnum.USER];
 }

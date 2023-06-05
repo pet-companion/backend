@@ -1,3 +1,4 @@
 import { UserInformation } from './user.decorator';
+import { Roles } from './roles.decorator';
 
-export { UserInformation };
+export { UserInformation, Roles };

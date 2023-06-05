@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { UniqueConstraintError } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginDto, RegisterDto } from './auth.dto';
 import { OtpService } from '../otp/otp.service';
 import { UserService } from '../user/user.service';
+import { RoleEnum } from 'src/enums';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +38,7 @@ export class AuthService {
       userId: user.id,
       name: user.name,
       isVerified: user.isVerified,
+      roles: user.roles,
     });
 
     await this.updateRefreshToken(user.id, tokens.refresh_token);
@@ -70,19 +67,27 @@ export class AuthService {
    *                     type if credentials are correct otherwise throw ForbiddenException
    * @todo               Add validation for phone number
    */
-  async register({ email, password, name, phoneNumber }: RegisterDto) {
+  async register({
+    email,
+    password,
+    name,
+    phoneNumber,
+    roles = [RoleEnum.USER],
+  }: RegisterDto) {
     try {
       const newUser = await this.userService.createUser(
         email,
         password,
         name,
         phoneNumber,
+        roles,
       );
 
       const tokens = await this.signTokens({
         userId: newUser.id,
         name: newUser.name,
         isVerified: newUser.isVerified,
+        roles: newUser.roles,
       });
       await this.updateRefreshToken(newUser.id, tokens.refresh_token);
 
@@ -113,7 +118,7 @@ export class AuthService {
    * @description Logout user
    */
   async logout(userId: number) {
-    this.userService.updateUserRefreshToken(userId, null);
+    await this.userService.updateUser(userId, { refreshToken: null });
 
     return { message: 'Logout successfully.' };
   }
@@ -121,10 +126,9 @@ export class AuthService {
   async verifyEmail(otp: string, user: any) {
     await this.otpService.verifyOtp({ otp }, user.id);
 
-    const updatedUser = await this.userService.updateEmailVerificationStatus(
-      user.id,
-      true,
-    );
+    const updatedUser = await this.userService.updateUser(user.id, {
+      isVerified: true,
+    });
 
     return {
       message: 'Email verified successfully.',
@@ -150,10 +154,9 @@ export class AuthService {
   async resetPassword({ otp, newPassword }: any, user: any) {
     await this.otpService.verifyOtp({ otp }, user.id);
 
-    const updatedUser = await this.userService.updatePassword(
-      user.id,
-      newPassword,
-    );
+    const updatedUser = await this.userService.updateUser(user.id, {
+      password: newPassword,
+    });
 
     return {
       message: 'Password reset successfully.',
@@ -187,8 +190,6 @@ export class AuthService {
   async refresh(userId: number, refreshToken: string) {
     const user = await this.userService.findUserById(userId);
     if (!user) throw new ForbiddenException('Credentials incorrect.');
-    console.log(user);
-    console.log(refreshToken, user.refreshToken);
 
     const isRefreshTokenMatches = await compare(
       refreshToken,
@@ -201,6 +202,7 @@ export class AuthService {
       userId: user.id,
       name: user.name,
       isVerified: user.isVerified,
+      roles: user.roles,
     });
 
     await this.updateRefreshToken(user.id, tokens.refresh_token);
@@ -215,7 +217,9 @@ export class AuthService {
    */
   async updateRefreshToken(userId: number, refreshToken: string) {
     const hashedRefreshToken = await hash(refreshToken, 12);
-    await this.userService.updateUserRefreshToken(userId, hashedRefreshToken);
+    await this.userService.updateUser(userId, {
+      refreshToken: hashedRefreshToken,
+    });
   }
 
   /**
@@ -225,8 +229,13 @@ export class AuthService {
    * @returns       Access token and token type
    * @description   Sign token with user's id, email and name
    */
-  private async signTokens({ userId, name, isVerified = false }) {
-    const payload = { id: userId, name, isVerified };
+  private async signTokens({ userId, name, isVerified = false, roles = [] }) {
+    const payload = {
+      id: userId,
+      name,
+      isVerified,
+      roles: roles.map((role) => role.name),
+    };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {

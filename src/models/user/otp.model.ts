@@ -4,6 +4,7 @@ import {
   Model,
   DataType,
   ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 
@@ -21,4 +22,7 @@ export class Otp extends Model<Otp> {
   @ForeignKey(() => User)
   @Column
   userId: number;
+
+  @BelongsTo(() => User)
+  user: User;
 }

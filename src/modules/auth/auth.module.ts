@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { config } from 'dotenv';
 import { SequelizeModule } from '@nestjs/sequelize';
 
-import { Otp, User } from 'src/models';
+import { Otp, Role, User, UserRoles } from 'src/models';
 import { AccessTokenStrategy, RefreshTokenStrategy } from './strategies';
 
 import { AuthController } from './auth.controller';
@@ -16,8 +16,7 @@ config();
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User]),
-    SequelizeModule.forFeature([Otp]),
+    SequelizeModule.forFeature([User, Otp, UserRoles, Role]),
     JwtModule.register({}),
   ],
   controllers: [AuthController],
