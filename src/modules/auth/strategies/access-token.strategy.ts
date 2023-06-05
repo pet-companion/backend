@@ -7,6 +7,7 @@ type JwtPayload = {
   id: string;
   name: string;
   isVerified: boolean;
+  roles: string;
 };
 
 @Injectable()

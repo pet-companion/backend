@@ -2,15 +2,18 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('petcategories', {
+    await queryInterface.createTable('roles', {
       id: {
         type: Sequelize.INTEGER,
-        primaryKey: true,
+        allowNull: false,
         autoIncrement: true,
+        primaryKey: true,
       },
       name: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM,
+        values: ['user', 'admin'],
         allowNull: false,
+        defaultValue: 'user',
       },
       createdAt: {
         allowNull: false,
@@ -27,8 +30,8 @@ module.exports = {
     return queryInterface;
   },
 
-  down: async (queryInterface) => {
-    await queryInterface.dropTable('petcategories');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('roles');
     return queryInterface;
   },
 };

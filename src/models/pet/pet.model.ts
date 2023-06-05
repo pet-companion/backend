@@ -4,12 +4,11 @@ import {
   DataType,
   Column,
   ForeignKey,
-  HasOne,
   BelongsTo,
 } from 'sequelize-typescript';
 import { User } from '../user/user.model';
 import { PetCategory } from './pet-category.model';
-import { GenderEnum, PetCategoryEnum } from 'src/enums';
+import { GenderEnum } from 'src/enums';
 
 @Table
 export class Pet extends Model<Pet> {
@@ -34,7 +33,7 @@ export class Pet extends Model<Pet> {
   @Column({ type: DataType.DATE, allowNull: false })
   dateOfBirth: Date;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false })
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
   isDeleted: boolean;
 
   @ForeignKey(() => User)

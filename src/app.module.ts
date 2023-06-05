@@ -6,18 +6,19 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { config } from 'dotenv';
 import { Dialect } from 'sequelize';
 
-import { Otp, User, Pet, PetCategory } from './models';
+import { Otp, User, Pet, PetCategory, Role, UserRoles } from './models';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { EmailModule } from './modules/email/email.module';
 import { PetModule } from './modules/pet/pet.module';
+import { S3Module } from './modules/s3/s3.module';
 
 config();
 
 const sequelizeConfig = {
   dialect: process.env.DB_DIALECT as Dialect,
-  models: [User, Otp, Pet, PetCategory],
+  models: [User, Otp, Pet, PetCategory, UserRoles, Role],
   synchronize: true,
   uri: process.env.DATABASE_URL,
   define: {
@@ -47,6 +48,7 @@ const sequelizeConfig = {
     OtpModule,
     EmailModule,
     PetModule,
+    S3Module,
   ],
 })
 export class AppModule {}

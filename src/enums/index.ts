@@ -14,4 +14,9 @@ enum PetCategoryEnum {
   OTHER = 'other',
 }
 
-export { GenderEnum, PetCategoryEnum };
+enum RoleEnum {
+  ADMIN = 'admin',
+  USER = 'user',
+}
+
+export { GenderEnum, PetCategoryEnum, RoleEnum };
