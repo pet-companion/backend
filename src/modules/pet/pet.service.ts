@@ -3,6 +3,7 @@ import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { Pet, PetCategory } from 'src/models';
 import { InjectModel } from '@nestjs/sequelize';
+import { WhereOptions } from 'sequelize';
 
 @Injectable()
 export class PetService {
@@ -75,24 +76,30 @@ export class PetService {
   }
 
   async remove(petId: number) {
-    const pet = await this.findOnePet(petId);
+    await this.petModel.update(
+      { isDeleted: true },
+      { where: { id: petId }, returning: true },
+    );
 
-    await pet.destroy();
-
-    return pet;
+    return await this.findOnePet(petId);
   }
 
   async removeByUserId(petId: number, userId: number) {
-    const pet = await this.findOnePet(petId, userId);
+    await this.petModel.update(
+      { isDeleted: true },
+      { where: { id: petId, userId }, returning: true },
+    );
 
-    await pet.destroy();
-
-    return pet;
+    return await this.findOnePet(petId, userId);
   }
 
   private async findOnePet(petId: number, userId?: number) {
+    const where: WhereOptions<Pet> = userId
+      ? { id: petId, userId }
+      : { id: petId };
+
     const pet = await this.petModel.findOne({
-      where: { id: petId, userId },
+      where,
     });
 
     if (!pet) throw new BadRequestException('Pet not found.');
