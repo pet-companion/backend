@@ -8,6 +8,7 @@ async function bootstrap() {
     new ValidationPipe({
       stopAtFirstError: true,
       transform: true,
+      whitelist: true,
     }),
   );
 

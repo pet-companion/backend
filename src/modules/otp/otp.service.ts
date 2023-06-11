@@ -53,9 +53,9 @@ export class OtpService {
   }
 
   async verifyOtp({ otp }: VerifyOtpDto, userId: number) {
-    const user = await this.userService.findUserById(userId);
+    const user = await this.userService.findOne(userId);
 
-    if (user.isVerified) {
+    if (user.data.isVerified) {
       throw new BadRequestException('User already verified.');
     }
 

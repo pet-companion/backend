@@ -1,13 +1,19 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { UniqueConstraintError } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import { LoginDto, RegisterDto } from './auth.dto';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { OtpService } from '../otp/otp.service';
 import { UserService } from '../user/user.service';
 import { RoleEnum } from 'src/enums';
+import { User } from 'src/models';
+import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +22,7 @@ export class AuthService {
     private configService: ConfigService,
     private otpService: OtpService,
     private userService: UserService,
+    @InjectModel(User) private userModel: typeof User,
   ) {}
 
   /**
@@ -67,20 +74,14 @@ export class AuthService {
    *                     type if credentials are correct otherwise throw ForbiddenException
    * @todo               Add validation for phone number
    */
-  async register({
-    email,
-    password,
-    name,
-    phoneNumber,
-    roles = [RoleEnum.USER],
-  }: RegisterDto) {
+  async register({ email, password, name, phoneNumber }: RegisterDto) {
     try {
       const newUser = await this.userService.createUser(
         email,
         password,
         name,
         phoneNumber,
-        roles,
+        [RoleEnum.USER],
       );
 
       const tokens = await this.signTokens({
@@ -136,17 +137,21 @@ export class AuthService {
     };
   }
 
-  async sendVerifyEmailOtp(user: any) {
-    const userEmail = (await this.userService.findUserById(user.id)).email;
+  async sendVerifyEmailOtp(userEmail: string) {
+    const { email, id } = await this.userModel.findOne({
+      where: { email: userEmail },
+    });
+
+    if (!email) throw new ForbiddenException('User not found.');
 
     return await this.otpService.sendOtp(
       {
-        email: userEmail,
+        email,
         message: 'Your verification code is',
         subject: 'Verify your email',
         duration: 2,
       },
-      user.id,
+      id,
       'Verification code sent successfully, please check your email.',
     );
   }
@@ -164,17 +169,21 @@ export class AuthService {
     };
   }
 
-  async sendPasswordResetOtp(user: any) {
-    const userEmail = (await this.userService.findUserById(user.id)).email;
+  async sendPasswordResetOtp(userEmail: string) {
+    const { email, id } = await this.userModel.findOne({
+      where: { email: userEmail },
+    });
+
+    if (!email) throw new ForbiddenException('User not found.');
 
     return await this.otpService.sendOtp(
       {
-        email: userEmail,
+        email,
         message: 'Your password reset code is',
         subject: 'Reset your password',
         duration: 2,
       },
-      user.id,
+      id,
       'Password reset code sent successfully, please check your email.',
     );
   }
@@ -188,24 +197,26 @@ export class AuthService {
    *                      if credentials are correct otherwise throw ForbiddenException
    */
   async refresh(userId: number, refreshToken: string) {
-    const user = await this.userService.findUserById(userId);
+    const user = await this.userService.findOne(userId);
     if (!user) throw new ForbiddenException('Credentials incorrect.');
+
+    if (!user.data.refreshToken) throw new UnauthorizedException();
 
     const isRefreshTokenMatches = await compare(
       refreshToken,
-      user.refreshToken,
+      user.data.refreshToken,
     );
     if (!isRefreshTokenMatches)
       throw new ForbiddenException('Credentials incorrect.');
 
     const tokens = await this.signTokens({
-      userId: user.id,
-      name: user.name,
-      isVerified: user.isVerified,
-      roles: user.roles,
+      userId: user.data.id,
+      name: user.data.name,
+      isVerified: user.data.isVerified,
+      roles: user.data.roles,
     });
 
-    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    await this.updateRefreshToken(user.data.id, tokens.refresh_token);
 
     return tokens;
   }

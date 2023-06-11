@@ -1,37 +1,23 @@
-import {
-  IsArray,
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsString,
-  IsStrongPassword,
-} from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { RoleEnum } from 'src/enums';
 
-export class LoginDto {
+export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  @IsEmail()
   email: string;
 
   @IsString()
   @IsNotEmpty()
   password: string;
-}
 
-export class RegisterDto extends LoginDto {
   @IsString()
-  @IsNotEmpty()
   name: string;
 
   @IsString()
-  @IsNotEmpty()
   phoneNumber: string;
 
-  @IsStrongPassword()
   @IsNotEmpty()
-  password: string;
-
+  @IsArray()
   @IsEnum(RoleEnum, { each: true })
   roles: RoleEnum[] = [RoleEnum.USER];
 }
