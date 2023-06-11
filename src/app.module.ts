@@ -13,6 +13,7 @@ import { OtpModule } from './modules/otp/otp.module';
 import { EmailModule } from './modules/email/email.module';
 import { PetModule } from './modules/pet/pet.module';
 import { S3Module } from './modules/s3/s3.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 config();
 
@@ -49,6 +50,7 @@ const sequelizeConfig = {
     EmailModule,
     PetModule,
     S3Module,
+    AdminModule,
   ],
 })
 export class AppModule {}

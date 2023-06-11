@@ -4,9 +4,10 @@ import { UserInformation } from 'src/decorators';
 import { AccessTokenGuard, RefreshTokenGuard } from './guards';
 
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './auth.dto';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { EmailVerificationGuard } from './guards/email-verification.guard';
 import { PasswordResetOtpDto, VerifyEmailOtpDto } from '../otp/otp.dto';
+import { EmailDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,13 +23,13 @@ export class AuthController {
     return await this.authService.register(body);
   }
 
-  @UseGuards(new AccessTokenGuard())
+  @UseGuards(AccessTokenGuard)
   @Get('send-verification-code')
-  async sendVerifyEmailOtp(@UserInformation() user: any) {
-    return await this.authService.sendVerifyEmailOtp(user);
+  async sendVerifyEmailOtp(@Body() { email }: EmailDto) {
+    return await this.authService.sendVerifyEmailOtp(email);
   }
 
-  @UseGuards(new AccessTokenGuard())
+  @UseGuards(AccessTokenGuard)
   @Post('verify-email')
   async verifyEmail(
     @Body() { otp }: VerifyEmailOtpDto,
@@ -37,13 +38,13 @@ export class AuthController {
     return await this.authService.verifyEmail(otp, user);
   }
 
-  @UseGuards(new AccessTokenGuard())
+  @UseGuards(AccessTokenGuard)
   @Get('send-reset-password-code')
-  async sendPasswordResetOtp(@UserInformation() user: any) {
-    return await this.authService.sendPasswordResetOtp(user);
+  async sendPasswordResetOtp(@Body() { email }: EmailDto) {
+    return await this.authService.sendPasswordResetOtp(email);
   }
 
-  @UseGuards(new AccessTokenGuard())
+  @UseGuards(AccessTokenGuard)
   @Post('reset-password')
   async resetPassword(
     @Body() { otp, newPassword }: PasswordResetOtpDto,
@@ -52,19 +53,19 @@ export class AuthController {
     return await this.authService.resetPassword({ otp, newPassword }, user);
   }
 
-  @UseGuards(new AccessTokenGuard(), new EmailVerificationGuard())
+  @UseGuards(AccessTokenGuard, EmailVerificationGuard)
   @Get('logout')
   async logout(@UserInformation() user: any) {
     return await this.authService.logout(user.id);
   }
 
-  @UseGuards(new AccessTokenGuard(), new EmailVerificationGuard())
+  @UseGuards(AccessTokenGuard, EmailVerificationGuard)
   @Get('me')
   me(@UserInformation() user: any) {
     return user;
   }
 
-  @UseGuards(new RefreshTokenGuard(), new EmailVerificationGuard())
+  @UseGuards(RefreshTokenGuard, EmailVerificationGuard)
   @Get('refresh')
   async refresh(@UserInformation() user: any) {
     return await this.authService.refresh(user.id, user.refreshToken);
