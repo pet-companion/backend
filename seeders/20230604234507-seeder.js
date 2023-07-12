@@ -24,7 +24,7 @@ const generageFakeUsers = async () => {
     let user = {
       name: faker.person.firstName(),
       email: faker.internet.email(),
-      password: await hash('123456', 12),
+      password: await hash('123456', 10),
       isDeleted: faker.datatype.boolean(),
       isVerified: faker.datatype.boolean(),
       phoneNumber: faker.phone.number('###########'),
@@ -36,7 +36,7 @@ const generageFakeUsers = async () => {
   users.push({
     name: 'Admin',
     email: 'admin@admin.com',
-    password: await hash('123456', 12),
+    password: await hash('123456', 10),
     isDeleted: false,
     isVerified: true,
     phoneNumber: '501-039-841',

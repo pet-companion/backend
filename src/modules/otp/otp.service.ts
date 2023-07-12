@@ -38,7 +38,7 @@ export class OtpService {
       text: message,
     });
 
-    const hashedOtp = await hash(generatedOtp, 12);
+    const hashedOtp = await hash(generatedOtp, 10);
 
     await this.otpModel.create({
       email,
