@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { hash } from 'bcrypt';
-import { FindOptions, Sequelize } from 'sequelize';
+import { FindOptions, Sequelize, UniqueConstraintError } from 'sequelize';
 import { RoleEnum } from 'src/enums';
 import { User, Role, UserRoles, Pet, PetCategory } from 'src/models';
 import { QueryParamsDto } from './dto/query-params.dto';
@@ -147,6 +147,10 @@ export class UserService {
 
       return createdUser;
     } catch (error) {
+      if (error instanceof UniqueConstraintError) {
+        await transaction.rollback();
+        throw new BadRequestException('Email already exists.');
+      }
       await transaction.rollback();
       throw error;
     }
@@ -198,6 +202,8 @@ export class UserService {
     if (!response.data) {
       throw new BadRequestException('User not found.');
     }
+
+    response.data.refreshToken = undefined;
 
     return {
       message: 'Successfully updated user',

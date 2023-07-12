@@ -20,7 +20,6 @@ import { EndpointURL, Roles } from 'src/decorators';
 import { UserService } from '../user/user.service';
 import { QueryParamsDto, SearchDto } from '../user/dto';
 import { AssignRoleDto, CreateUserDto, UpdateUserDto } from './dto';
-import { hash } from 'bcrypt';
 
 @Controller('admin')
 @UseGuards(AccessTokenGuard, EmailVerificationGuard, RolesGuard)
@@ -61,11 +60,9 @@ export class AdminController {
   async createUser(
     @Body() { email, name, password, phoneNumber, roles }: CreateUserDto,
   ) {
-    const hashedPassword = await hash(password, 10);
-
     return await this.userService.createUser(
       email,
-      hashedPassword,
+      password,
       name,
       phoneNumber,
       roles,

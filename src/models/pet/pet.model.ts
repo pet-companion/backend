@@ -5,10 +5,12 @@ import {
   Column,
   ForeignKey,
   BelongsTo,
+  HasOne,
 } from 'sequelize-typescript';
 import { User } from '../user/user.model';
 import { PetCategory } from './pet-category.model';
 import { GenderEnum } from 'src/enums';
+import { PetPhoto } from './pet-photo.model';
 
 @Table
 export class Pet extends Model<Pet> {
@@ -26,9 +28,6 @@ export class Pet extends Model<Pet> {
 
   @Column({ type: DataType.BOOLEAN, allowNull: false })
   isNeuter: boolean;
-
-  @Column({ type: DataType.TEXT, allowNull: false })
-  photoUrl: string;
 
   @Column({ type: DataType.DATE, allowNull: false })
   dateOfBirth: Date;
@@ -49,4 +48,7 @@ export class Pet extends Model<Pet> {
 
   @BelongsTo(() => PetCategory)
   petCategory: PetCategory;
+
+  @HasOne(() => PetPhoto)
+  petPhoto: PetPhoto;
 }

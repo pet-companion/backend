@@ -1,9 +1,18 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 
 @Injectable()
 export class EmailVerificationGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    return request.user.isVerified;
+
+    if (request.user.isVerified) {
+      return true;
+    }
+    throw new ForbiddenException('Email not verified');
   }
 }
