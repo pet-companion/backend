@@ -5,5 +5,6 @@ import { PetCategory } from './pet/pet-category.model';
 import { UserRoles } from './role/user-roles.model';
 import { Role } from './role/role.model';
 import { PetPhoto } from './pet/pet-photo.model';
+import { Post } from './post/post.model';
 
-export { User, Otp, Pet, PetCategory, UserRoles, Role, PetPhoto };
+export { User, Otp, Pet, PetCategory, UserRoles, Role, PetPhoto, Post };

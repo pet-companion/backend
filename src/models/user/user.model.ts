@@ -5,13 +5,13 @@ import {
   DataType,
   HasOne,
   HasMany,
-  BelongsTo,
   BelongsToMany,
 } from 'sequelize-typescript';
 import { Otp } from './otp.model';
 import { Pet } from '../pet/pet.model';
 import { UserRoles } from '../role/user-roles.model';
 import { Role } from '../role/role.model';
+import { Post } from '../post/post.model';
 
 @Table
 export class User extends Model<User> {
@@ -47,4 +47,7 @@ export class User extends Model<User> {
 
   @HasMany(() => UserRoles)
   userRoles: UserRoles[];
+
+  @HasMany(() => Post)
+  posts: Post[];
 }
