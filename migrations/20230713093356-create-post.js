@@ -3,26 +3,29 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('carts', {
+    await queryInterface.createTable('posts', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
       },
-      quantity: {
-        type: Sequelize.INTEGER,
+      title: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
-      productId: {
-        type: Sequelize.INTEGER,
+      description: {
+        type: Sequelize.TEXT('medium'),
         allowNull: false,
-        references: {
-          model: 'products',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+      },
+      content: {
+        type: Sequelize.TEXT('long'),
+        allowNull: false,
+      },
+      isPublished: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -34,14 +37,24 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      createdAt: {
+      petCategoryId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: 'petcategories',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      createdAt: {
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updatedAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
     });
@@ -50,7 +63,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('carts');
+    await queryInterface.dropTable('posts');
     return queryInterface;
   },
 };

@@ -23,12 +23,14 @@ import { PetModule } from './modules/pet/pet.module';
 import { S3Module } from './modules/s3/s3.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { StoreModule } from './modules/store/store.module';
+import { PostsModule } from './modules/posts/posts.module';
+import { Post } from './models/post/post.model';
 
 config();
 
 const sequelizeConfig = {
   dialect: process.env.DB_DIALECT as Dialect,
-  models: [User, Otp, Pet, PetCategory, UserRoles, Role, PetPhoto],
+  models: [User, Otp, Pet, PetCategory, UserRoles, Role, PetPhoto, Post],
   synchronize: true,
   uri: process.env.DATABASE_URL,
   define: {
@@ -61,6 +63,7 @@ const sequelizeConfig = {
     S3Module,
     AdminModule,
     StoreModule,
+    PostsModule,
   ],
 })
 export class AppModule {}

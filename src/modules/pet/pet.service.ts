@@ -46,11 +46,15 @@ export class PetService {
   async findOne(petId: number) {
     const pet = await this.findOnePet(petId);
 
+    if (!pet) throw new BadRequestException('Pet not found.');
+
     return pet;
   }
 
   async findOneByUserId(petId: number, userId: number) {
     const pet = await this.findOnePet(petId, userId);
+
+    if (!pet) throw new BadRequestException('Pet not found.');
 
     return pet;
   }
