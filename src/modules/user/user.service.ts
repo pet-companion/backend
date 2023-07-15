@@ -120,7 +120,7 @@ export class UserService {
         { transaction },
       );
 
-      roles.forEach(async (role) => {
+      for (const role of roles) {
         const foundRole = await this.roleModel.findOne({
           where: { name: role },
           transaction,
@@ -137,7 +137,7 @@ export class UserService {
           },
           { transaction },
         );
-      });
+      }
 
       const createdUser = await this.userModel.findByPk(user.id, {
         transaction,
