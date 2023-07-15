@@ -15,10 +15,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   const config = new DocumentBuilder()
-    .setTitle('Pets example')
-    .setDescription('The cats API description')
+    .setTitle('API Documentation')
+    .setDescription('This is the API documentation for the Petito API.')
     .setVersion('1.0')
-    .addTag('cats')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

@@ -6,6 +6,8 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from 'src/models/post/post.model';
 import { PetCategory } from 'src/models';
 
+// TODO- Filter posts by pet category
+
 @Injectable()
 export class PostsService {
   constructor(

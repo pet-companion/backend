@@ -13,6 +13,11 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import {
+  ApiTags,
+  ApiCreatedResponse,
+  ApiBadRequestResponse,
+} from '@nestjs/swagger';
+import {
   AccessTokenGuard,
   EmailVerificationGuard,
   RolesGuard,
@@ -20,6 +25,7 @@ import {
 import { RoleEnum } from 'src/enums';
 import { Roles, UserInformation } from 'src/decorators';
 
+@ApiTags('Posts')
 @Controller('posts')
 @UseGuards(new AccessTokenGuard(), new EmailVerificationGuard())
 export class PostsController {
@@ -28,6 +34,44 @@ export class PostsController {
   @UseGuards(RolesGuard)
   @Roles(RoleEnum.USER, RoleEnum.ADMIN)
   @Post()
+  @ApiCreatedResponse({
+    description: 'Post created successfully',
+    schema: {
+      example: {
+        id: 1,
+        title: 'Post title',
+        description: 'Post description',
+        content: 'Post content',
+        isPublished: true,
+        petCategoryId: 1,
+        userId: 1,
+        updatedAt: '2023-07-14T03:44:44.591Z',
+        createdAt: '2023-07-14T03:44:44.591Z',
+      },
+      properties: {
+        id: { type: 'integer' },
+        title: { type: 'string' },
+        description: { type: 'string' },
+        content: { type: 'string' },
+        isPublished: { type: 'boolean' },
+        petCategoryId: { type: 'integer' },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation failed.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          'title should not be empty',
+          'description should not be empty',
+          'isPublished should not be empty',
+        ],
+        error: 'Bad Request',
+      },
+    },
+  })
   create(@Body() createPostDto: CreatePostDto, @UserInformation() user: any) {
     return this.postsService.create(createPostDto, user.id);
   }
