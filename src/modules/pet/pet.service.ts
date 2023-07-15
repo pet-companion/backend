@@ -5,6 +5,8 @@ import { Pet, PetCategory } from 'src/models';
 import { InjectModel } from '@nestjs/sequelize';
 import { WhereOptions } from 'sequelize';
 
+// TODO - Filter pets by pet category
+
 @Injectable()
 export class PetService {
   constructor(
