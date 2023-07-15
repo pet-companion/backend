@@ -31,20 +31,17 @@ export class AuthController {
 
   @UseGuards(AccessTokenGuard)
   @Post('verify-email')
-  async verifyEmail(
-    @Body() { otp }: VerifyEmailOtpDto,
-    @UserInformation() user: any,
-  ) {
-    return await this.authService.verifyEmail(otp, user);
+  async verifyEmail(@Body() { otp, email }: VerifyEmailOtpDto) {
+    return await this.authService.verifyEmail(otp, email);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AccessTokenGuard, EmailVerificationGuard)
   @Get('send-reset-password-code')
   async sendPasswordResetOtp(@Body() { email }: EmailDto) {
     return await this.authService.sendPasswordResetOtp(email);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(AccessTokenGuard, EmailVerificationGuard)
   @Post('reset-password')
   async resetPassword(
     @Body() { otp, newPassword }: PasswordResetOtpDto,

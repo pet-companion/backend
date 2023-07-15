@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
@@ -12,8 +13,6 @@ import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { OtpService } from '../otp/otp.service';
 import { UserService } from '../user/user.service';
 import { RoleEnum } from 'src/enums';
-import { User } from 'src/models';
-import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +21,6 @@ export class AuthService {
     private configService: ConfigService,
     private otpService: OtpService,
     private userService: UserService,
-    @InjectModel(User) private userModel: typeof User,
   ) {}
 
   /**
@@ -124,8 +122,12 @@ export class AuthService {
     return { message: 'Logout successfully.' };
   }
 
-  async verifyEmail(otp: string, user: any) {
-    await this.otpService.verifyOtp({ otp }, user.id);
+  async verifyEmail(otp: string, userEmail: string) {
+    await this.otpService.verifyOtp({ otp }, userEmail);
+
+    const user = await this.userService.findUserByEmail(userEmail);
+
+    if (!user) throw new ForbiddenException('Email not found.');
 
     const updatedUser = await this.userService.updateUser(user.id, {
       isVerified: true,
@@ -138,26 +140,31 @@ export class AuthService {
   }
 
   async sendVerifyEmailOtp(userEmail: string) {
-    const { email, id } = await this.userModel.findOne({
-      where: { email: userEmail },
-    });
+    const user = await this.userService.findUserByEmail(userEmail);
 
-    if (!email) throw new ForbiddenException('User not found.');
+    if (!user) throw new ForbiddenException('Email not found.');
+
+    if (user.isVerified)
+      throw new BadRequestException('Email already verified.');
 
     return await this.otpService.sendOtp(
       {
-        email,
+        email: user.email,
         message: 'Your verification code is',
         subject: 'Verify your email',
         duration: 2,
       },
-      id,
+      user.id,
       'Verification code sent successfully, please check your email.',
     );
   }
 
-  async resetPassword({ otp, newPassword }: any, user: any) {
-    await this.otpService.verifyOtp({ otp }, user.id);
+  async resetPassword({ otp, newPassword }: any, userEmail: string) {
+    await this.otpService.verifyOtp({ otp }, userEmail);
+
+    const user = await this.userService.findUserByEmail(userEmail);
+
+    if (!user) throw new ForbiddenException('Email not found.');
 
     const updatedUser = await this.userService.updateUser(user.id, {
       password: newPassword,
@@ -170,20 +177,18 @@ export class AuthService {
   }
 
   async sendPasswordResetOtp(userEmail: string) {
-    const { email, id } = await this.userModel.findOne({
-      where: { email: userEmail },
-    });
+    const user = await this.userService.findUserByEmail(userEmail);
 
-    if (!email) throw new ForbiddenException('User not found.');
+    if (!user) throw new ForbiddenException('Email not found.');
 
     return await this.otpService.sendOtp(
       {
-        email,
+        email: user.email,
         message: 'Your password reset code is',
         subject: 'Reset your password',
         duration: 2,
       },
-      id,
+      user.id,
       'Password reset code sent successfully, please check your email.',
     );
   }
