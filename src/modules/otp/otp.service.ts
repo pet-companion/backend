@@ -59,10 +59,6 @@ export class OtpService {
       throw new BadRequestException('Email not found.');
     }
 
-    if (user.isVerified) {
-      throw new BadRequestException('Email already verified.');
-    }
-
     const otpData = await this.otpModel.findOne({
       where: { userId: user.id },
     });

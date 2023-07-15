@@ -1,6 +1,7 @@
 // OTP DTO
 
 import {
+  IsEmail,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -17,23 +18,23 @@ export class VerifyOtpDto {
 
 export class VerifyEmailOtpDto extends VerifyOtpDto {
   @IsNotEmpty()
-  @IsString()
+  @IsEmail()
   email: string;
 }
 
-export class PasswordResetOtpDto {
-  @IsNotEmpty()
-  @IsString()
-  otp: string;
-
+export class PasswordResetOtpDto extends VerifyOtpDto {
   @IsNotEmpty()
   @IsString()
   newPassword: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 }
 
 export class SendOtpDto {
   @IsNotEmpty()
-  @IsString()
+  @IsEmail()
   email: string;
 
   @IsOptional()

@@ -44,10 +44,9 @@ export class AuthController {
   @UseGuards(AccessTokenGuard, EmailVerificationGuard)
   @Post('reset-password')
   async resetPassword(
-    @Body() { otp, newPassword }: PasswordResetOtpDto,
-    @UserInformation() user: any,
+    @Body() { otp, newPassword, email }: PasswordResetOtpDto,
   ) {
-    return await this.authService.resetPassword({ otp, newPassword }, user);
+    return await this.authService.resetPassword({ otp, newPassword }, email);
   }
 
   @UseGuards(AccessTokenGuard, EmailVerificationGuard)
