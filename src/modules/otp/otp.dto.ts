@@ -1,14 +1,25 @@
 // OTP DTO
 
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class VerifyOtpDto {
   @IsNotEmpty()
   @IsString()
+  @Length(5, 5)
   otp: string;
 }
 
-export class VerifyEmailOtpDto extends VerifyOtpDto {}
+export class VerifyEmailOtpDto extends VerifyOtpDto {
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+}
 
 export class PasswordResetOtpDto {
   @IsNotEmpty()

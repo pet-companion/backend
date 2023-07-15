@@ -52,15 +52,19 @@ export class OtpService {
     };
   }
 
-  async verifyOtp({ otp }: VerifyOtpDto, userId: number) {
-    const user = await this.userService.findOne(userId);
+  async verifyOtp({ otp }: VerifyOtpDto, userEmail: string) {
+    const user = await this.userService.findUserByEmail(userEmail);
 
-    if (user.data.isVerified) {
-      throw new BadRequestException('User already verified.');
+    if (!user) {
+      throw new BadRequestException('Email not found.');
+    }
+
+    if (user.isVerified) {
+      throw new BadRequestException('Email already verified.');
     }
 
     const otpData = await this.otpModel.findOne({
-      where: { userId },
+      where: { userId: user.id },
     });
 
     if (!otpData) {
@@ -70,7 +74,7 @@ export class OtpService {
     const { expiresAt } = otpData;
 
     if (expiresAt.getTime() < Date.now()) {
-      await this.deleteOtp(userId);
+      await this.deleteOtp(user.id);
       throw new BadRequestException('OTP expired, request a new one.');
     }
 
@@ -80,7 +84,7 @@ export class OtpService {
       throw new BadRequestException('Invalid code, please try again.');
     }
 
-    await this.deleteOtp(userId);
+    await this.deleteOtp(user.id);
 
     return isMatch;
   }
