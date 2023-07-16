@@ -20,10 +20,13 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('api', app, document, {
     customSiteTitle: 'Petito API Documentation',
     customCss: '.swagger-ui .topbar { display: none }',
     swaggerOptions: {
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
       docExpansion: 'none',
       filter: true,
       showRequestDuration: true,
