@@ -15,15 +15,15 @@ import {
   UserRoles,
   PetPhoto,
 } from './models';
-import { UserModule } from './modules/user/user.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { OtpModule } from './modules/otp/otp.module';
-import { EmailModule } from './modules/email/email.module';
-import { PetModule } from './modules/pet/pet.module';
-import { S3Module } from './modules/s3/s3.module';
+import { UserModule } from './modules/public/user/user.module';
+import { AuthModule } from './modules/public/auth/auth.module';
+import { OtpModule } from './modules/public/otp/otp.module';
+import { EmailModule } from './modules/public/email/email.module';
+import { PetModule } from './modules/public/pet/pet.module';
+import { S3Module } from './modules/public/s3/s3.module';
 import { AdminModule } from './modules/admin/admin.module';
-import { StoreModule } from './modules/store/store.module';
-import { PostsModule } from './modules/posts/posts.module';
+import { StoreModule } from './modules/public/store/store.module';
+import { PostsModule } from './modules/public/post/post.module';
 import { Post } from './models/post/post.model';
 
 config();

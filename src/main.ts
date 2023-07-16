@@ -20,7 +20,16 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api', app, document, {
+    customSiteTitle: 'Petito API Documentation',
+    customCss: '.swagger-ui .topbar { display: none }',
+    swaggerOptions: {
+      docExpansion: 'none',
+      filter: true,
+      showRequestDuration: true,
+      defaultModelsExpandDepth: -1,
+    },
+  });
 
   await app.listen(process.env.PORT || 3000);
 }
