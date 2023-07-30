@@ -12,6 +12,7 @@ import { Pet } from '../pet/pet.model';
 import { UserRoles } from '../role/user-roles.model';
 import { Role } from '../role/role.model';
 import { Post } from '../post/post.model';
+import { Address } from '../address/address.model';
 
 @Table
 export class User extends Model<User> {
@@ -50,4 +51,7 @@ export class User extends Model<User> {
 
   @HasMany(() => Post)
   posts: Post[];
+
+  @HasMany(() => Address)
+  addresses: Address[];
 }
